@@ -1,0 +1,486 @@
+---
+title: "anova model checking"
+author: "Saima Jahan"
+date: "10/21/2020"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+Step 1: Load the data into R
+
+
+```{r}
+getwd()
+setwd("/spring 2020/ast -504/lec")
+getwd()
+dat<-read.csv("plasma.csv")
+dat
+
+```
+
+Step 2: Check that the data meets the assumptions
+
+a. The errors are assumed to be normally distributed with mean zero.
+
+
+
+```{r}
+library(ggplot2)
+h1<-ggplot(dat, aes(x=etch.rate)) + 
+  geom_histogram( breaks=seq(530,725,by=30), 
+                 col="black", 
+                 fill="blue",alpha=0.4
+                 ) + 
+  labs(title="Histogram ", x="Class", y="Frequency") 
+# Change the line type and color of axis lines
+h1<-h1+ theme( axis.line = element_line(colour = "darkblue", 
+                      size = 1, linetype = "solid"))+theme(plot.title = element_text(hjust = 0.5))
+
+ 
+h1
+```
+
+Create Q-Q plot of residuals
+
+```{r}
+#create Q-Q plot to compare this dataset to a theoretical normal distribution 
+qqnorm(dat$etch.rate)
+
+#add straight diagonal line to plot
+qqline(dat$etch.rate)
+```
+
+
+
+# Conduct Shapiro-Wilk Test for Normality
+ 
+null: samples come from a normal distribution
+ 
+```{r}
+#Conduct Shapiro-Wilk Test for normality 
+shapiro.test(dat$etch.rate)
+
+```
+
+b. Equal Variance
+
+
+```{r}
+library(ggplot2)
+box<-ggplot(dat,aes(x=etch.rate,y=treatment))+geom_boxplot(fill = "blue",col="black",alpha=0.4)+theme( axis.line = element_line(colour = "darkblue", 
+                      size = 1, linetype = "solid"))+labs(title="Check the assumption visually using boxplots ", x="Etch rate",y="Treatment")+theme(plot.title = element_text(hjust = 0.5))
+box
+
+```
+
+Conduct Bartlett’s Test
+
+null hypothesis: The samples have equal variances.
+
+
+```{r}
+bartlett.test(etch.rate ~ treatment, data=dat)
+```
+
+c. Independence
+
+The observations in each group are independent of the observations in every other group.
+
+```{r}
+anova<- aov(etch.rate ~ treatment ,data=dat)
+anova
+summary(anova)
+
+
+plot(anova)
+```
+Fitted versus residual plot:
+This shows if there is a pattern in the residuals, and ideally should show similar scatter for each condition.
+Fitted versus root over standardized residual:
+This is like the first plot but now to specifically test if the residuals increase with the fitted values.
+
+
+lec 2 fall 20
+
+```{r}
+treatment<-c("20g","20g","20g","20g","30g","30g","30g","30g","40g","40g","40g","40g")
+length(treatment)
+
+
+
+
+observation<-c(24,28,37,30,37,44,39,35,42,47,52,38)
+length(observation)
+
+
+df<-data.frame(treatment,observation)
+df
+ano<-aov(df)
+```
+
+
+```{r}
+getwd()
+setwd("/Fall 20/AST 504/question/")
+getwd()
+
+```
+
+
+```{r}
+getwd()
+setwd()
+```
+shozib s analysis
+
+16.11.20 
+
+```{r}
+
+```
+
+
+lec 5 
+
+##read data
+
+data<-read.csv(file.choose(), header=TRUE)
+data
+
+  obs Method
+1   3.34      1
+2   3.12      1
+3   4.23      1
+4   3.70      1
+5   4.75      1
+6   3.12      1
+7   3.91      2
+8   5.94      2
+9   5.14      2
+10  5.36      2
+11  5.86      2
+12  7.55      2
+13  9.31      3
+14 11.37      3
+15 12.75      3
+16  9.09      3
+17 12.82      3
+18 10.24      3
+19 20.15      4
+20 14.82      4
+21 13.95      4
+22 20.20      4
+23 17.35      4
+24 19.82      4
+
+
+## Model adequacy plot
+
+MA<-as.factor(data$Method)
+MA
+
+crd<-aov(data$obs~MA, data=data)
+crd
+
+par(mfrow=c(2,2))
+plot(crd)
+
+
+##variance Test for checking equality of variance on the raw data
+
+
+bartlett.test(data$obs~data$Method)
+
+
+        Bartlett test of homogeneity of variances
+
+data:  data$obs by data$Method
+Bartlett's K-squared = 8.9958, df = 3, p-value = 0.02935
+
+##transformation method 
+
+meann<-tapply(data$obs,data$Method, mean)
+meann
+
+##Mean
+
+        1         2         3         4 
+ 3.710000  5.626667 10.930000 17.715000 
+
+##standard deviation
+
+sdd<-tapply(data$obs,data$Method, sd)
+sdd
+
+       1        2        3        4 
+0.661090 1.192202 1.647070 2.800891 
+
+##log of mean
+
+lmeu<-read.table("clipboard")
+lmeu
+
+         V1
+1 0.5693739
+2 0.7502512
+3 1.0386202
+4 1.2483412
+
+##log of standard deviation
+
+ls<-read.table("clipboard")
+ls
+
+         V1
+1 -0.17973941
+2  0.07634985
+3  0.21671206
+4  0.44729621
+
+##regression Analysis
+
+reg<-lm(ls$V1~lmeu$V1)
+reg
+
+
+Call:
+lm(formula = ls$V1 ~ lmeu$V1)
+
+Coefficients:
+(Intercept)      lmeu$V1  
+    -0.6311       0.8554 
+
+
+## scatter plot for cheaking straight line with slope
+ 
+plot(ls$V1,lmeu$V1)
+
+
+## apply lognormal transformation method
+
+data1<-read.table("clipboard")
+data1
+
+          V1 V2
+1  0.5237465  1
+2  0.4941546  1
+3  0.6263404  1
+4  0.5682017  1
+5  0.6766936  1
+6  0.4941546  1
+7  0.5921768  2
+8  0.7737864  2
+9  0.7109631  2
+10 0.7291648  2
+11 0.7678976  2
+12 0.8779470  2
+13 0.9689497  3
+14 1.0557605  3
+15 1.1055102  3
+16 0.9585639  3
+17 1.1078880  3
+18 1.0103000  3
+19 1.3042750  4
+20 1.1708482  4
+21 1.1445742  4
+22 1.3053514  4
+23 1.2392995  4
+24 1.2971036  4
+
+
+## Model adequacy Plots on the transformed data:
+
+F<-as.factor(data1$V2)
+F
+
+crd1<-aov(data1$V1~F)
+crd1
+par(mfrow=c(2,2))
+plot(crd1)
+
+
+## Again variance test on the transformed data for cheking variance equality
+
+
+bartlett.test(data1$V1~data1$V2)
+
+
+        Bartlett test of homogeneity of variances
+
+data:  data1$V1 by data1$V2
+Bartlett's K-squared = 0.66993, df = 3, p-value = 0.8803
+
+
+
+##anova test
+
+
+MA<-as.factor(data1$V2)
+MA
+
+anova<-aov(data1$V1~MA)
+anova
+
+Call:
+   aov(formula = data1$V1 ~ MA)
+
+Terms:
+                       MA Residuals
+Sum of Squares  1.6440679 0.1187223
+Deg. of Freedom         3        20
+
+Residual standard error: 0.07704619
+Estimated effects may be unbalanced
+
+summary(anova)
+
+
+            Df Sum Sq Mean Sq F value   Pr(>F)    
+MA           3 1.6441  0.5480   92.32 6.88e-12 ***
+Residuals   20 0.1187  0.0059                     
+---
+Signif. codes:  0 â***â 0.001 â**â 0.01 â*â 0.05 â.â 0.1 â â 1
+
+## Comparisons among treatment means:
+
+TukeyHSD(anova)
+
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = data1$V1 ~ MA)
+
+$MA
+         diff        lwr       upr     p adj
+2-1 0.1781074 0.05360332 0.3026115 0.0035830
+3-1 0.4706135 0.34610940 0.5951175 0.0000000
+4-1 0.6796934 0.55518937 0.8041975 0.0000000
+3-2 0.2925061 0.16800202 0.4170102 0.0000117
+4-2 0.5015860 0.37708198 0.6260901 0.0000000
+4-3 0.2090800 0.08457589 0.3335840 0.0007323
+```{r}
+
+getwd()
+s<-read.csv("assgmnt 504 asma.csv")
+```
+
+```{r}
+
+str(s)
+
+```
+```{r}
+crd<- aov(dep ~ 
+         
+               Method,data=s)
+summary(crd)
+plot(crd)
+par(mfrow=c(2,2))
+plot(crd)
+
+```
+```{r}
+bartlett.test(dep~Method,data=s)
+
+```
+```{r}
+tapply(s$dep,s$Method, mean) 
+
+
+tapply(s$dep, s$Method,sd) 
+```
+```{r}
+sigmayi<-c(.66,1.19,1.65,2.80)
+logsigmayi<-log(sigmayi)
+logsigmayi
+```
+```{r}
+mui<-c(.71,2.63,7.93,14.72)
+logmui<-log(mui)
+logmui
+```
+```{r}
+lm(logsigmayi~logmui)
+```
+```{r}
+s<-read.csv("assgmnt 504 asma.csv")
+```
+
+```{r}
+crd<- aov(dep1 ~ 
+         
+               Method,data=s)
+summary(crd)
+plot(crd)
+par(mfrow=c(2,2))
+plot(crd)
+
+
+```
+```{r}
+bartlett.test(dep1~Method,data=s)
+```
+```{r}
+
+crd<- aov(s$dep1 ~ 
+             Method,data=s)
+ 
+ par(mfrow=c(2,2))
+ plot(crd)
+ a<-bartlett.test(s$dep1~s$Method)
+ a
+ 
+ summary(crd)
+```
+
+```{r}
+plot(logmui,logsigmayi,type = "l")
+```
+2.12.20
+```{r}
+etchrate<-c(575,542,530,539,570,565,593,590,579,610,600,651,610,637,629,725,700,715,685,710)
+treatment<-c("RF160","RF180","RF200","RF220")
+df<-data.frame(etchrate,treatment)
+df
+
+View(df)
+```
+
+
+another 
+
+```{r}
+etchrate1<-c(575,542,530,539,570,565,593,590,579,610,600,651,610,637,629,725,700,715,685,710)
+treatment1<-c("RF160","RF160","RF160","RF160","RF160","RF180","RF180","RF180","RF180","RF180","RF200","RF200","RF200","RF200","RF200","RF220","RF220","RF220","RF220","RF220")
+df1<-data.frame(etchrate1,treatment1)
+df1
+View(df1)
+```
+
+
+
+
+
+
+```{r}
+etchrate<-c(575,565,600,725,542,593,651,700,530,590,610,715,539,579,637,685,570,610,629,710)
+treatment<-c("RF160","RF180","RF200","RF220")
+df<-data.frame(etchrate,treatment)
+df
+model<-aov(df$etchrate~df$treatment)
+summary(model)
+View(df)
+```
+
+```{r}
+sessionInfo()
+```
+```{r}
+?aov
+```
+
+
+```{r}
+?anova
+```
